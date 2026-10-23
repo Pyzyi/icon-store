@@ -1,85 +1,86 @@
 # Icon Store
 
-**Ihr eigener Icon-Server fürs Heimnetz.** Icons hochladen, Link kopieren, im Dashboard einbinden.
+**Your own icon server for your home lab.** Upload icons, copy the link, use it in your dashboard.
 
-Wer ein Dashboard wie [Homepage](https://gethomepage.dev), [Homarr](https://homarr.dev) oder
-[Dashy](https://dashy.to) nutzt, braucht für jeden Dienst ein Icon, am besten unter einer festen URL. Icon Store
-ist genau dafür gebaut: Sie laden ein Bild hoch und bekommen sofort einen dauerhaften Direktlink wie
+If you run a dashboard like [Homepage](https://gethomepage.dev), [Homarr](https://homarr.dev) or
+[Dashy](https://dashy.to), every service needs an icon — ideally at a URL that never changes. Icon Store does
+exactly that: upload an image and you instantly get a permanent direct link such as
 
 ```
 http://192.168.1.10:3011/icons/proxmox_k3j9x0abcd.png
 ```
 
-Den Link fügen Sie im Dashboard als Icon ein, fertig. Alles bleibt bei Ihnen, ohne Cloud und ohne Konto.
+Paste that link into your dashboard as the icon and you're done. Everything stays on your own server: no cloud,
+no account.
 
-## Was die App kann
+## Features
 
-- 🖼️ **Upload** von PNG, SVG, JPG, WEBP, ICO und GIF, auch mehrere Dateien auf einmal per Drag & Drop
-- 🔗 **Link kopieren** mit einem Klick. Der Link ändert sich nie, auch nicht beim Umbenennen.
-- 🏷️ **Name und Tags** vergeben, **Suche** über Name, Dateiname und Tags
-- ✏️ **Bearbeiten und Löschen**, Löschen nur mit Sicherheitsabfrage
-- 💾 **Backup** aller Icons als ZIP herunterladen und wieder einspielen
-- 🌗 Hell- und Dunkelmodus, Deutsch und Englisch, funktioniert auch auf dem Handy
-- 🔒 Geschützt durch ein Passwort (den „Admin-Key“). Hochgeladene Dateien werden geprüft und bereinigt.
+- 🖼️ **Upload** PNG, SVG, JPG, WEBP, ICO and GIF — several files at once via drag & drop
+- 🔗 **Copy the link** with one click. The link never changes, not even when you rename the icon.
+- 🏷️ **Names and tags**, plus **search** by name, file name and tag
+- ✏️ **Edit and delete** (deleting always asks for confirmation)
+- 💾 **Backup**: download all icons as a ZIP and restore it later
+- 🌗 Light and dark mode, English and German UI (picked from your browser language), works on mobile
+- 🔒 Protected by a password (the "admin key"); uploaded files are checked and sanitised
 
 ---
 
 ## Installation (ZimaOS / CasaOS)
 
-Sie brauchen nur die Datei [`compose.yaml`](compose.yaml) aus diesem Repo und einen selbst erzeugten Key.
+All you need is the [`compose.yaml`](compose.yaml) from this repo and a key you generate yourself.
 
-### Schritt 1: Admin-Key erzeugen
+### Step 1: Generate an admin key
 
-Der Admin-Key ist Ihr Passwort für die Oberfläche. Er muss mindestens 32 Zeichen lang und zufällig sein.
+The admin key is your password for the web interface. It must be random and at least 32 characters long.
 
-Öffnen Sie in ZimaOS das **Terminal** und geben Sie ein:
+Open the **Terminal** in ZimaOS and run:
 
 ```sh
 head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n'; echo
 ```
 
-Heraus kommt eine Zeile mit 64 Zeichen, zum Beispiel `9f2c4e…a71b`. **Kopieren und sicher aufbewahren**,
-etwa im Passwortmanager.
+This prints one line of 64 characters, e.g. `9f2c4e…a71b`. **Copy it and keep it safe**, for example in your
+password manager.
 
 <details>
-<summary>Andere Wege, einen Key zu erzeugen</summary>
+<summary>Other ways to generate a key</summary>
 
-- Linux/macOS mit OpenSSL: `openssl rand -hex 32`
-- Über Docker (lädt einmalig das kleine Alpine-Image, ca. 8 MB):
+- Linux/macOS with OpenSSL: `openssl rand -hex 32` (OpenSSL is _not_ installed on ZimaOS)
+- Via Docker (downloads the tiny Alpine image once, ~8 MB; the container is removed right after):
   `docker run --rm alpine sh -c "head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n'"; echo`
 - Windows PowerShell:
   `$b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); -join ($b | % { '{0:x2}' -f $_ })`
 
-Bitte keinen selbst ausgedachten Satz verwenden. Ein zufälliger Key ist praktisch nicht zu erraten.
+Please don't make up a phrase yourself — a random key is practically impossible to guess.
 
 </details>
 
-### Schritt 2: App installieren
+### Step 2: Install the app
 
-1. ZimaOS → **App Store** → oben rechts **„+“ / Benutzerdefinierte App installieren**
-2. Reiter **Docker Compose** wählen
-3. Den kompletten Inhalt von [`compose.yaml`](compose.yaml) einfügen
-4. Diese Zeile suchen:
+1. ZimaOS → **App Store** → **"+" / Install a customized app** (top right)
+2. Choose the **Docker Compose** tab
+3. Paste the entire content of [`compose.yaml`](compose.yaml)
+4. Find this line:
    ```yaml
-   ADMIN_KEY: 'BITTE_AENDERN_openssl_rand_hex_32'
+   ADMIN_KEY: 'CHANGE_ME_generate_a_random_key'
    ```
-   und den Platzhalter durch Ihren Key ersetzen. Die Anführungszeichen bleiben stehen:
+   and replace the placeholder with your key — keep the quotes:
    ```yaml
    ADMIN_KEY: '9f2c4e…a71b'
    ```
-5. **Installieren**
+5. Click **Install**
 
-> Solange der Platzhalter drinsteht, **startet die App absichtlich nicht**. So läuft sie nie
-> versehentlich ohne Passwortschutz.
+> As long as the placeholder is still there, the app **deliberately refuses to start**. That way it can never
+> run without password protection by accident.
 
-### Schritt 3: Loslegen
+### Step 3: Get started
 
-1. Im Browser `http://<IP-Ihres-Servers>:3011` öffnen
-2. Mit dem Admin-Key anmelden
-3. **Icons hochladen** → Datei wählen oder hineinziehen → Name/Tags vergeben → **Hochladen**
-4. Der Link wird automatisch kopiert. Sonst auf das Kopieren-Symbol der Karte klicken.
+1. Open `http://<your-server-ip>:3011` in your browser
+2. Sign in with your admin key
+3. **Upload icons** → choose or drop files → add name/tags → **Upload**
+4. The link is copied automatically — or click the copy button on any card
 
-### Icon im Dashboard verwenden
+### Using an icon in your dashboard
 
 **Homepage** (`services.yaml`):
 
@@ -89,84 +90,84 @@ Bitte keinen selbst ausgedachten Satz verwenden. Ein zufälliger Key ist praktis
     icon: http://192.168.1.10:3011/icons/proxmox_k3j9x0abcd.png
 ```
 
-**Homarr / Dashy / andere:** Den Link einfach ins Feld für die Icon- bzw. Bild-URL einfügen.
+**Homarr / Dashy / others:** paste the link into the icon or image URL field.
 
 ---
 
-## Gut zu wissen
+## FAQ
 
-**Wo liegen meine Daten?**
-In `/DATA/AppData/icon-store/data` auf Ihrem Server: `icons/` enthält die Bilder, `metadata.json` die Namen
-und Tags.
+**Where is my data stored?**
+In `/DATA/AppData/icon-store/data` on your server: `icons/` holds the images, `metadata.json` the names and
+tags.
 
-**Wie mache ich ein Backup?**
-In der App oben auf **Backup** → **Backup herunterladen**. Über denselben Dialog lässt sich das ZIP wieder
-einspielen. Vorhandene Icons werden dabei nicht überschrieben.
+**How do I make a backup?**
+In the app, click **Backup** → **Download backup**. The same dialog restores a backup ZIP; existing icons are
+never overwritten.
 
-**Wie bekomme ich Updates?**
-Im ZimaOS-Terminal das neue Image laden:
+**How do I update?**
+Pull the new image in the ZimaOS terminal:
 
 ```sh
 docker pull ghcr.io/pyzyi/icon-store:2
 ```
 
-Danach in ZimaOS die Einstellungen der App öffnen und **Speichern** klicken. Dabei wird der Container mit der
-neuen Version neu erstellt. Ein reiner Neustart reicht nicht. Ihre Daten und Links bleiben erhalten.
+Then open the app's settings in ZimaOS and click **Save** so the container is recreated with the new version.
+A plain restart is not enough. Your data and links are kept.
 
-**Ich habe den Key vergessen.**
-Erzeugen Sie einen neuen Key (Schritt 1), tragen Sie ihn in den App-Einstellungen von ZimaOS bei `ADMIN_KEY`
-ein und starten Sie die App neu. Ihre Icons bleiben erhalten.
+**I forgot my key.**
+Generate a new one (step 1), enter it as `ADMIN_KEY` in the app settings in ZimaOS and restart the app. Your
+icons are kept.
 
-**Die App startet nicht.**
-In ZimaOS die Logs der App ansehen. Die App schreibt dort genau, was fehlt, z. B. wenn noch der Platzhalter
-als Key eingetragen ist oder der Key zu kurz ist.
+**The app doesn't start.**
+Check the app's logs in ZimaOS. The app states exactly what is missing — for example if the placeholder is
+still set as the key or the key is too short.
 
-**Kann ich die App aus dem Internet erreichbar machen?**
-Ja, aber nur über einen Reverse Proxy mit HTTPS (z. B. Nginx Proxy Manager). Setzen Sie dann in der
-`compose.yaml` `TRUST_PROXY: '1'`. Ohne HTTPS bitte nur im Heimnetz verwenden.
+**Can I make it reachable from the internet?**
+Yes, but only behind a reverse proxy with HTTPS (e.g. Nginx Proxy Manager). In that case set
+`TRUST_PROXY: '1'` in `compose.yaml`. Without HTTPS, please use it on your home network only.
 
-**Ich nutze die alte Version von mr-shadow00/Icon-Store.**
-Sie können direkt umsteigen, alle bestehenden Links funktionieren weiter:
+**I'm using the old version by mr-shadow00/Icon-Store.**
+You can switch directly; all existing links keep working:
 
-1. Zur Sicherheit den Datenordner kopieren:
+1. Back up the data folder first:
    `sudo cp -a /DATA/AppData/icon-store/data /DATA/AppData/icon-store-backup`
-2. Die alte App deinstallieren. Wenn ZimaOS fragt, ob die Daten gelöscht werden sollen: **Nein**.
-3. Diese Version wie oben installieren. Sie nutzt denselben Ordner und denselben Port (3011).
+2. Uninstall the old app. If ZimaOS asks whether to delete the app data: **No**.
+3. Install this version as described above. It uses the same folder and the same port (3011).
 
-Beim ersten Start werden die alten Daten automatisch übernommen. Eine Sicherung der alten Metadaten bleibt als
-`metadata.v1.bak.json` liegen.
-
----
-
-## Einstellungen
-
-Optional in der `compose.yaml` unter `environment:` anpassbar:
-
-| Variable            | Standard | Bedeutung                                               |
-| ------------------- | -------- | ------------------------------------------------------- |
-| `ADMIN_KEY`         | –        | **Pflicht.** Ihr Passwort, mindestens 32 Zeichen        |
-| `MAX_UPLOAD_MB`     | `8`      | Maximale Größe pro Datei                                |
-| `MAX_TOTAL_SIZE_MB` | `1024`   | Speichergrenze für alle Icons zusammen                  |
-| `TRUST_PROXY`       | `false`  | Hinter einem Reverse Proxy auf `1` setzen               |
-| `PUBLIC_BROWSE`     | `false`  | `true` = Icon-Liste auch ohne Login ansehen (nur lesen) |
-
-Den Port ändern Sie bei `published: '3011'`.
-
-## Sicherheit in Kürze
-
-- Ohne gültigen Key startet die App nicht. Der Login läuft über ein sicheres Session-Cookie, Login-Versuche
-  sind begrenzt (5 pro Minute).
-- Hochgeladene Dateien werden auf ihren echten Typ geprüft. SVGs werden von Skripten befreit, Bilder neu
-  gespeichert, um versteckte Daten und Metadaten zu entfernen.
-- Der Container läuft ohne Root-Rechte, mit schreibgeschütztem Dateisystem und begrenztem Speicher (256 MB).
-- Alle Aktionen (Login, Upload, Änderung, Löschung) werden protokolliert, der Key selbst nie.
+On first start your old data is migrated automatically; a copy of the old metadata is kept as
+`metadata.v1.bak.json`.
 
 ---
 
-## Für Entwickler
+## Settings
 
-Quellcode, Tests, Dockerfile und ausführliche Dokumentation liegen im Branch
-[`source`](https://github.com/Pyzyi/icon-store/tree/source). Das Docker-Image
-`ghcr.io/pyzyi/icon-store` (amd64 und arm64) wird von dort automatisch per GitHub Actions gebaut.
+Optional, under `environment:` in `compose.yaml`:
 
-Inspiriert von [mr-shadow00/Icon-Store](https://github.com/mr-shadow00/Icon-Store). Lizenz: MIT.
+| Variable            | Default | Meaning                                                    |
+| ------------------- | ------- | ---------------------------------------------------------- |
+| `ADMIN_KEY`         | –       | **Required.** Your password, at least 32 characters        |
+| `MAX_UPLOAD_MB`     | `8`     | Maximum size per file                                      |
+| `MAX_TOTAL_SIZE_MB` | `1024`  | Storage limit for all icons together                       |
+| `TRUST_PROXY`       | `false` | Set to `1` when running behind a reverse proxy             |
+| `PUBLIC_BROWSE`     | `false` | `true` = icon list can be viewed without login (read-only) |
+
+To change the port, edit `published: '3011'`.
+
+## Security in a nutshell
+
+- The app won't start without a valid key. Login uses a secure session cookie; login attempts are limited
+  (5 per minute).
+- Uploaded files are checked for their real type; SVGs are stripped of scripts, raster images are re-saved to
+  remove hidden data and metadata.
+- The container runs without root privileges, with a read-only file system and limited memory (256 MB).
+- All actions (login, upload, edit, delete) are logged — the key itself never is.
+
+---
+
+## For developers
+
+Source code, tests, Dockerfile and detailed documentation live on the
+[`source`](https://github.com/Pyzyi/icon-store/tree/source) branch. The Docker image
+`ghcr.io/pyzyi/icon-store` (amd64 and arm64) is built from there automatically via GitHub Actions.
+
+Inspired by [mr-shadow00/Icon-Store](https://github.com/mr-shadow00/Icon-Store). License: MIT.

@@ -1,18 +1,18 @@
-# Icon Store für ZimaOS / CasaOS
-# App Store → "Benutzerdefinierte App installieren" → Docker-Compose-Tab → einfügen.
-# Quellcode, Tests und Doku: https://github.com/Pyzyi/icon-store/tree/source
+# Icon Store for ZimaOS / CasaOS
+# App Store -> "Install a customized app" -> Docker Compose tab -> paste this file.
+# Docs: https://github.com/Pyzyi/icon-store  |  Source code: branch "source"
 #
-# EINZIGE PFLICHTÄNDERUNG: ADMIN_KEY unten ersetzen.
-# Key erzeugen im ZimaOS-Terminal (dort gibt es kein openssl):
+# THE ONLY REQUIRED CHANGE: replace ADMIN_KEY below.
+# Generate a key in the ZimaOS terminal (openssl is not installed there):
 #   head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n'; echo
-# Auf anderen Rechnern geht auch:  openssl rand -hex 32
-# Solange der Platzhalter drinsteht, startet die App absichtlich nicht.
+# Elsewhere you can also use:  openssl rand -hex 32
+# As long as the placeholder is set, the app deliberately refuses to start.
 name: icon-store
 
 services:
-  # Einmaliger Helfer: macht den Datenordner für den unprivilegierten App-User
-  # (UID 1000) beschreibbar – auch bei Altdaten der Vorversion, die root gehören.
-  # Läuft nur mit den Rechten CHOWN + DAC_READ_SEARCH, ohne Netzwerk, und beendet sich sofort.
+  # One-shot helper: makes the data folder writable for the unprivileged app user
+  # (UID 1000) - also for data from the old version, which is owned by root.
+  # Runs with only CHOWN + DAC_READ_SEARCH, without network, and exits immediately.
   icon-store-init:
     image: ghcr.io/pyzyi/icon-store:2
     container_name: icon-store-init
@@ -37,19 +37,19 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
     environment:
-      # Pflicht, min. 32 Zeichen (siehe Befehl ganz oben).
-      ADMIN_KEY: 'BITTE_AENDERN_openssl_rand_hex_32'
-      # Optional (Standardwerte):
+      # Required, min. 32 characters (see the command at the top).
+      ADMIN_KEY: 'CHANGE_ME_generate_a_random_key'
+      # Optional (defaults):
       MAX_UPLOAD_MB: '8'
       MAX_TOTAL_SIZE_MB: '1024'
-      # Nur hinter einem Reverse Proxy (z. B. Nginx Proxy Manager) auf "1" setzen:
+      # Set to "1" only when running behind a reverse proxy (e.g. Nginx Proxy Manager):
       TRUST_PROXY: 'false'
     ports:
       - target: 3000
         published: '3011'
         protocol: tcp
     volumes:
-      # Nur die Daten liegen auf dem Host, der Code steckt im Image.
+      # Only the data lives on the host; the code is inside the image.
       - type: bind
         source: /DATA/AppData/icon-store/data
         target: /app/data
