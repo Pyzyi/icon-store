@@ -1,0 +1,82 @@
+# Icon Store für ZimaOS / CasaOS
+# App Store → "Benutzerdefinierte App installieren" → Docker-Compose-Tab → einfügen.
+#
+# EINZIGE PFLICHTÄNDERUNG: ADMIN_KEY unten ersetzen.
+# Key erzeugen (ZimaOS-Terminal oder beliebiger Rechner):  openssl rand -hex 32
+# Solange der Platzhalter drinsteht, startet die App absichtlich nicht.
+name: icon-store
+
+services:
+  # Einmaliger Helfer: macht den Datenordner für den unprivilegierten App-User
+  # (UID 1000) beschreibbar – auch bei Altdaten der Vorversion, die root gehören.
+  # Läuft nur mit den Rechten CHOWN + DAC_READ_SEARCH, ohne Netzwerk, und beendet sich sofort.
+  icon-store-init:
+    image: ghcr.io/pyzyi/icon-store:2
+    container_name: icon-store-init
+    user: '0:0'
+    entrypoint: ['/bin/sh', '-c', 'find /app/data ! -user 1000 -exec chown 1000:1000 {} +']
+    restart: 'no'
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_READ_SEARCH]
+    security_opt: ['no-new-privileges:true']
+    volumes:
+      - type: bind
+        source: /DATA/AppData/icon-store/data
+        target: /app/data
+
+  icon-store:
+    image: ghcr.io/pyzyi/icon-store:2
+    container_name: icon-store
+    depends_on:
+      icon-store-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    environment:
+      # Pflicht, min. 32 Zeichen. Erzeugen mit: openssl rand -hex 32
+      ADMIN_KEY: 'BITTE_AENDERN_openssl_rand_hex_32'
+      # Optional (Standardwerte):
+      MAX_UPLOAD_MB: '8'
+      MAX_TOTAL_SIZE_MB: '1024'
+      # Nur hinter einem Reverse Proxy (z. B. Nginx Proxy Manager) auf "1" setzen:
+      TRUST_PROXY: 'false'
+    ports:
+      - target: 3000
+        published: '3011'
+        protocol: tcp
+    volumes:
+      # Nur die Daten liegen auf dem Host, der Code steckt im Image.
+      - type: bind
+        source: /DATA/AppData/icon-store/data
+        target: /app/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+    cpu_shares: 90
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '1.0'
+    network_mode: bridge
+    labels:
+      icon: https://icon.casaos.io/main/all/icon-store.png
+
+x-casaos:
+  main: icon-store
+  author: self
+  category: self
+  hostname: ''
+  icon: https://icon.casaos.io/main/all/icon-store.png
+  index: /
+  is_uncontrolled: false
+  port_map: '3011'
+  scheme: http
+  store_app_id: icon-store
+  title:
+    custom: ''
+    en_us: icon-store
+    de_de: Icon Store

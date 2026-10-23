@@ -1,0 +1,52 @@
+{
+  "name": "icon-store",
+  "version": "2.0.0",
+  "description": "Self-hosted, hardened icon store for dashboards (Homepage, Homarr, ...): upload icons, get a stable direct link.",
+  "license": "MIT",
+  "repository": "github:Pyzyi/icon-store",
+  "private": true,
+  "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "start:env": "node --env-file=.env src/server.js",
+    "test": "node --test --test-concurrency=1 'test/*.test.js'",
+    "coverage": "node --test --test-concurrency=1 --experimental-test-coverage --test-coverage-include=src/** --test-coverage-lines=80 --test-coverage-branches=70 --test-coverage-functions=80 'test/*.test.js'",
+    "lint": "eslint --max-warnings=0 . && prettier --check .",
+    "format": "prettier --write .",
+    "typecheck": "tsc -p jsconfig.json",
+    "bench": "node scripts/bench-search.js",
+    "check": "npm run lint && npm run typecheck && npm run coverage && npm run bench"
+  },
+  "dependencies": {
+    "dompurify": "^3.4.17",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.1",
+    "file-type": "^22.2.0",
+    "helmet": "^8.3.0",
+    "jsdom": "^29.1.1",
+    "multer": "^2.5.0",
+    "sharp": "^0.35.5",
+    "yauzl": "^3.4.0",
+    "yazl": "^3.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/express": "^5.0.6",
+    "@types/jsdom": "^30.0.0",
+    "@types/multer": "^2.3.0",
+    "@types/node": "^26.6.5",
+    "@types/supertest": "^7.2.1",
+    "@types/yauzl": "^3.4.0",
+    "@types/yazl": "^3.3.1",
+    "eslint": "^10.13.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "supertest": "^7.3.1",
+    "typescript": "^7.0.2"
+  }
+}
