@@ -37,6 +37,8 @@ export class ConfigError extends Error {
 
 /** Values from our own docs/compose file that must never be accepted as a real key. */
 const PLACEHOLDER_PATTERN = /change|aendern|ändern|replace|example|placeholder|xxxx/i;
+/** Works on ZimaOS, which ships without openssl. */
+const KEYGEN_HINT = `Generate one with:  head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \\n'; echo   (or: openssl rand -hex 32)`;
 
 /**
  * Read and validate the whole configuration up front. Any problem aborts the
@@ -96,17 +98,13 @@ function validateAdminKey(raw, insecureNoAuth, problems) {
   const key = raw?.trim() ?? '';
   if (!key) {
     if (insecureNoAuth) return null;
-    problems.push(
-      `ADMIN_KEY is missing. Generate one with "openssl rand -hex 32" (min. ${MIN_ADMIN_KEY_LENGTH} chars).`,
-    );
+    problems.push(`ADMIN_KEY is missing (min. ${MIN_ADMIN_KEY_LENGTH} chars). ${KEYGEN_HINT}`);
     return null;
   }
   if (key.length < MIN_ADMIN_KEY_LENGTH) {
-    problems.push(
-      `ADMIN_KEY is too short (${key.length} chars, min. ${MIN_ADMIN_KEY_LENGTH}). Use "openssl rand -hex 32".`,
-    );
+    problems.push(`ADMIN_KEY is too short (${key.length} chars, min. ${MIN_ADMIN_KEY_LENGTH}). ${KEYGEN_HINT}`);
   } else if (PLACEHOLDER_PATTERN.test(key)) {
-    problems.push('ADMIN_KEY still contains the placeholder from the example. Use "openssl rand -hex 32".');
+    problems.push(`ADMIN_KEY still contains the placeholder from the example. ${KEYGEN_HINT}`);
   }
   return key;
 }

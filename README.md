@@ -1,228 +1,242 @@
 # Icon Store
 
-> Dieser Branch (`source`) enthält Code, Tests und CI. Der Branch `main` enthält nur die `compose.yaml` zum Kopieren.
+**Your own icon server for your home lab.** Upload icons, copy the link, use it in your dashboard.
 
-Selbst gehosteter Icon-Speicher für Dashboards wie Homepage, Homarr oder Dashy:
-Icon hochladen, stabile Direkt-URL kopieren, als `<img>` einbinden.
+If you run a dashboard like [Homepage](https://gethomepage.dev), [Homarr](https://homarr.dev) or
+[Dashy](https://dashy.to), every service needs an icon — ideally at a URL that never changes. Icon Store does
+exactly that: upload an image and you instantly get a permanent direct link such as
 
-Neu und gehärtet aufgebaut auf Basis der Idee von
-[mr-shadow00/Icon-Store](https://github.com/mr-shadow00/Icon-Store). Das URL-Schema
-`/icons/<name>_<zufall>.<ext>` ist identisch, bestehende Dashboard-Links funktionieren weiter.
+```
+http://192.168.1.10:3011/icons/proxmox_k3j9x0abcd.png
+```
 
-- Upload von PNG, SVG, JPG/JPEG, WEBP, ICO, GIF, auch mehrere Dateien per Drag & Drop
-- Name und Tags vergeben, Suche über Name, Dateiname und Tags
-- Bearbeiten, Löschen (mit Bestätigung), Link mit einem Klick kopieren
-- Backup und Wiederherstellung aller Icons inkl. Metadaten als ZIP
-- Oberfläche auf Deutsch und Englisch, hell/dunkel, mobil, per Tastatur bedienbar
+Paste that link into your dashboard as the icon and you're done. Everything stays on your own server: no cloud,
+no account.
+
+## Features
+
+- 🖼️ **Upload** PNG, SVG, JPG, WEBP, ICO and GIF — several files at once via drag & drop
+- 🔗 **Copy the link** with one click. The link never changes, not even when you rename the icon.
+- 🏷️ **Names and tags**, plus **search** by name, file name and tag
+- ✏️ **Edit and delete** (deleting always asks for confirmation)
+- 💾 **Backup**: download all icons as a ZIP and restore it later
+- 🌗 Light and dark mode, English and German UI (picked from your browser language), works on mobile
+- 🔒 Protected by a password (the "admin key"); uploaded files are checked and sanitised
 
 ---
 
-## Installation unter ZimaOS / CasaOS
+## Installation (ZimaOS / CasaOS)
 
-### 1. Admin-Key erzeugen
+All you need is the [`compose.yaml`](compose.yaml) from this repo and a key you generate yourself.
 
-Im ZimaOS-Terminal (dort ist `openssl` nicht installiert):
+### Step 1: Generate an admin key
+
+The admin key is your password for the web interface. It must be random and at least 32 characters long.
+
+Open the **Terminal** in ZimaOS and run:
 
 ```sh
 head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n'; echo
 ```
 
-Auf anderen Rechnern geht auch `openssl rand -hex 32`. Falls beides fehlt:
-`docker run --rm alpine sh -c "head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n'"; echo`
+This prints one line of 64 characters, e.g. `9f2c4e…a71b`. **Copy it and keep it safe**, for example in your
+password manager.
 
-Das Ergebnis (64 Zeichen) ist Ihr Passwort für die Oberfläche. Gut aufbewahren, z. B. im Passwortmanager.
+<details>
+<summary>Other ways to generate a key</summary>
 
-### 2. App installieren
+- Linux/macOS with OpenSSL: `openssl rand -hex 32` (OpenSSL is _not_ installed on ZimaOS)
+- Via Docker (downloads the tiny Alpine image once, ~8 MB; the container is removed right after):
+  `docker run --rm alpine sh -c "head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n'"; echo`
+- Windows PowerShell:
+  `$b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); -join ($b | % { '{0:x2}' -f $_ })`
 
-1. ZimaOS → **App Store** → **Benutzerdefinierte App installieren** (oben rechts, „+“) → Reiter **Docker Compose**.
-2. Den Inhalt von [`compose.yaml`](https://github.com/Pyzyi/icon-store/blob/main/compose.yaml) einfügen.
-3. In der Zeile `ADMIN_KEY: "BITTE_AENDERN_openssl_rand_hex_32"` den Platzhalter durch Ihren Key ersetzen.
-4. Installieren.
+Please don't make up a phrase yourself — a random key is practically impossible to guess.
 
-Danach ist die App unter `http://<zimaos-ip>:3011` erreichbar. Melden Sie sich mit dem Key an.
+</details>
 
-> Solange der Platzhalter drinsteht oder der Key kürzer als 32 Zeichen ist, **startet die App absichtlich nicht**.
-> Im Log steht dann, was fehlt (ZimaOS → App → Einstellungen/Logs bzw. `docker logs icon-store`).
+### Step 2: Install the app
 
-Die Daten liegen in `/DATA/AppData/icon-store/data`. Das Image (`ghcr.io/pyzyi/icon-store:2`) wird für
-amd64 und arm64 automatisch von GitHub Actions gebaut.
-
-### Icon in ein Dashboard einbinden
-
-Auf das Kopieren-Symbol einer Karte klicken. Der Link sieht so aus:
-
-```
-http://<zimaos-ip>:3011/icons/proxmox_k3j9x0abcd.png
-```
-
-Homepage (`services.yaml`): `icon: http://192.168.1.10:3011/icons/proxmox_k3j9x0abcd.png`
-
----
-
-## Migration von der alten Version
-
-Die alte App hat den kompletten Ordner `/DATA/AppData/icon-store` (Code **und** Daten) in den Container
-gehängt. Die Daten liegen dort im Unterordner `data/`, und genau diesen Ordner nutzt die neue Version.
-Sie müssen also nichts verschieben.
-
-1. **Sicherung anlegen** (empfohlen):
-   ```sh
-   sudo cp -a /DATA/AppData/icon-store/data /DATA/AppData/icon-store-data-backup
+1. ZimaOS → **App Store** → **"+" / Install a customized app** (top right)
+2. Choose the **Docker Compose** tab
+3. Paste the entire content of [`compose.yaml`](compose.yaml)
+4. Find this line:
+   ```yaml
+   ADMIN_KEY: 'CHANGE_ME_generate_a_random_key'
    ```
-2. Alte App in ZimaOS **stoppen und deinstallieren**. Falls ZimaOS fragt, ob die App-Daten gelöscht werden
-   sollen: **Nein**.
-3. Neue App wie oben beschrieben installieren (gleicher Port 3011, damit alle Links gleich bleiben).
-4. Beim ersten Start passiert automatisch Folgendes:
-   - Der Init-Container übergibt den Datenordner an den unprivilegierten App-User (UID 1000). Die alte App
-     lief als root.
-   - `metadata.json` wird ins neue Format (v2) überführt. Das Original bleibt als `metadata.v1.bak.json` liegen.
-   - Eine Konsistenzprüfung meldet im Log verwaiste Dateien oder Einträge ohne Datei. Es wird dabei nichts gelöscht.
-5. Optional aufräumen: Die alten Code-Dateien (`server.js`, `public/`, `node_modules/`, `package*.json`) in
-   `/DATA/AppData/icon-store/` werden nicht mehr gebraucht.
+   and replace the placeholder with your key — keep the quotes:
+   ```yaml
+   ADMIN_KEY: '9f2c4e…a71b'
+   ```
+5. Click **Install**
 
-Alle bisherigen URLs funktionieren unverändert, Dateinamen und IDs bleiben erhalten.
+> As long as the placeholder is still there, the app **deliberately refuses to start**. That way it can never
+> run without password protection by accident.
 
----
+### Step 3: Get started
 
-## Konfiguration
+1. Open `http://<your-server-ip>:3011` in your browser
+2. Sign in with your admin key
+3. **Upload icons** → choose or drop files → add name/tags → **Upload**
+4. The link is copied automatically — or click the copy button on any card
 
-Alle Einstellungen laufen über Umgebungsvariablen und werden beim Start geprüft. Bei ungültigen Werten
-startet die App nicht und nennt alle Fehler auf einmal. Vollständige Liste: [`.env.example`](.env.example).
+### Using an icon in your dashboard
 
-| Variable                 | Standard                      | Bedeutung                                                        |
-| ------------------------ | ----------------------------- | ---------------------------------------------------------------- |
-| `ADMIN_KEY`              | – (Pflicht)                   | Mindestens 32 Zeichen, `openssl rand -hex 32`                    |
-| `PORT` / `HOST`          | `3000` / `0.0.0.0`            | Port und Adresse im Container                                    |
-| `DATA_DIR`               | `./data` (Image: `/app/data`) | Datenordner                                                      |
-| `MAX_UPLOAD_MB`          | `8`                           | Maximale Größe pro Datei                                         |
-| `MAX_TOTAL_SIZE_MB`      | `1024`                        | Speichergrenze für alle Icons zusammen                           |
-| `MAX_IMPORT_MB`          | `1024`                        | Maximale Größe eines Backup-ZIPs                                 |
-| `TRUST_PROXY`            | `false`                       | Hinter Reverse Proxy: `1` (Anzahl Proxys)                        |
-| `COOKIE_SECURE`          | `auto`                        | `Secure`-Cookie automatisch bei HTTPS                            |
-| `ALLOWED_ORIGINS`        | –                             | Zusätzlich erlaubte Origins für Schreibzugriffe                  |
-| `SESSION_TTL_HOURS`      | `12`                          | Sitzungsdauer ohne Aktivität                                     |
-| `LOGIN_RATE_LIMIT`       | `5`                           | Login-Versuche pro Minute und IP                                 |
-| `UPLOAD_RATE_LIMIT`      | `120`                         | Uploads pro 10 Minuten und IP                                    |
-| `PUBLIC_BROWSE`          | `false`                       | Icon-Liste ohne Login ansehen (nur lesen)                        |
-| `ALLOW_API_BEARER`       | `false`                       | `Authorization: Bearer <ADMIN_KEY>` für Skripte erlauben         |
-| `REENCODE_RASTER`        | `true`                        | PNG/JPEG/WebP/GIF neu kodieren (entfernt Metadaten)              |
-| `AUDIT_LOG_FILE`         | –                             | Audit-Log zusätzlich in Datei schreiben                          |
-| `ALLOW_INSECURE_NO_AUTH` | `false`                       | **Nur für Tests:** schaltet die Anmeldung ab, mit Warnung im Log |
+**Homepage** (`services.yaml`):
 
-**Hinter einem Reverse Proxy mit HTTPS** (z. B. Nginx Proxy Manager): `TRUST_PROXY: "1"` setzen. Das
-Session-Cookie bekommt dann automatisch das `Secure`-Flag.
+```yaml
+- Proxmox:
+    href: https://proxmox.local:8006
+    icon: http://192.168.1.10:3011/icons/proxmox_k3j9x0abcd.png
+```
+
+**Homarr / Dashy / others:** paste the link into the icon or image URL field.
 
 ---
 
-## Backup und Wiederherstellung
+## FAQ
 
-In der Oberfläche unter **Backup**:
+**Where is my data stored?**
+In `/DATA/AppData/icon-store/data` on your server: `icons/` holds the images, `metadata.json` the names and
+tags.
 
-- **Backup herunterladen**: ZIP mit `metadata.json` und allen Dateien unter `icons/`.
-- **Backup einspielen**: Jede Datei durchläuft dieselben Prüfungen wie ein normaler Upload. Vorhandene
-  Icons werden übersprungen, nie überschrieben. Dateinamen und damit URLs bleiben erhalten.
+**How do I make a backup?**
+In the app, click **Backup** → **Download backup**. The same dialog restores a backup ZIP; existing icons are
+never overwritten.
 
-Ein ZIP des alten `data/`-Ordners (mit `metadata.json` und `icons/`) lässt sich ebenfalls einspielen.
+**How do I update?**
+Pull the new image in the ZimaOS terminal:
+
+```sh
+docker pull ghcr.io/pyzyi/icon-store:2
+```
+
+Then open the app's settings in ZimaOS and click **Save** so the container is recreated with the new version.
+A plain restart is not enough. Your data and links are kept.
+
+**I forgot my key.**
+Generate a new one (step 1), enter it as `ADMIN_KEY` in the app settings in ZimaOS and restart the app. Your
+icons are kept.
+
+**The app doesn't start.**
+Check the app's logs in ZimaOS. The app states exactly what is missing — for example if the placeholder is
+still set as the key or the key is too short.
+
+**Can I make it reachable from the internet?**
+Yes, but only behind a reverse proxy with HTTPS (e.g. Nginx Proxy Manager). In that case set
+`TRUST_PROXY: '1'` in `compose.yaml`. Without HTTPS, please use it on your home network only.
+
+**I'm using the old version by mr-shadow00/Icon-Store.**
+You can switch directly; all existing links keep working:
+
+1. Back up the data folder first:
+   `sudo cp -a /DATA/AppData/icon-store/data /DATA/AppData/icon-store-backup`
+2. Uninstall the old app. If ZimaOS asks whether to delete the app data: **No**.
+3. Install this version as described above. It uses the same folder and the same port (3011).
+
+On first start your old data is migrated automatically; a copy of the old metadata is kept as
+`metadata.v1.bak.json`.
 
 ---
 
-## Ohne Docker
+## Settings
 
-Node.js ≥ 22.12 (empfohlen: 24 LTS):
+Optional, under `environment:` in `compose.yaml`:
+
+| Variable            | Default | Meaning                                                    |
+| ------------------- | ------- | ---------------------------------------------------------- |
+| `ADMIN_KEY`         | –       | **Required.** Your password, at least 32 characters        |
+| `MAX_UPLOAD_MB`     | `8`     | Maximum size per file                                      |
+| `MAX_TOTAL_SIZE_MB` | `1024`  | Storage limit for all icons together                       |
+| `TRUST_PROXY`       | `false` | Set to `1` when running behind a reverse proxy             |
+| `PUBLIC_BROWSE`     | `false` | `true` = icon list can be viewed without login (read-only) |
+
+To change the port, edit `published: '3011'`.
+
+## Security in a nutshell
+
+- The app won't start without a valid key. Login uses a secure session cookie; login attempts are limited
+  (5 per minute).
+- Uploaded files are checked for their real type; SVGs are stripped of scripts, raster images are re-saved to
+  remove hidden data and metadata.
+- The container runs without root privileges, with a read-only file system and limited memory (256 MB).
+- All actions (login, upload, edit, delete) are logged — the key itself never is.
+
+---
+
+## For developers
+
+> This is the `source` branch. The `main` branch only contains this README and `compose.yaml` for easy copy & paste.
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push to `source`: lint, type check, tests with
+coverage thresholds, search benchmark, `npm audit`, a smoke test of the image, then publishes
+`ghcr.io/pyzyi/icon-store` for amd64 and arm64.
+
+### Run without Docker
+
+Node.js ≥ 22.12 (24 LTS recommended):
 
 ```sh
 npm ci --omit=dev
-cp .env.example .env      # ADMIN_KEY eintragen
-npm run start:env         # oder: ADMIN_KEY=... npm start
+cp .env.example .env      # set ADMIN_KEY
+npm run start:env         # or: ADMIN_KEY=... npm start
 ```
 
-## Image selbst bauen
+All settings are environment variables, validated at startup — see [`.env.example`](.env.example).
+
+### Build the image yourself
 
 ```sh
 docker build -t icon-store:local .
 ```
 
-In `compose.yaml` dann `image: icon-store:local` verwenden. Bei einem Netz mit TLS-Inspektion kann eine
-eigene CA übergeben werden: `docker build --secret id=ca,src=/pfad/ca.pem …`
+Behind a TLS-inspecting proxy you can pass an extra CA: `docker build --secret id=ca,src=/path/ca.pem …`
 
-## Entwicklung
+### Development
 
 ```sh
 npm ci
-npm test            # Tests (node:test + supertest)
-npm run coverage    # Testabdeckung mit Schwellwerten (Zeilen ≥ 80 %)
-npm run lint        # ESLint + Prettier, keine Warnungen erlaubt
-npm run typecheck   # tsc --checkJs auf JSDoc-Typen
-npm run bench       # Such-Benchmark mit 5.000 Icons
-npm run check       # alles zusammen
+npm test            # node:test + supertest
+npm run coverage    # with thresholds (lines ≥ 80 %)
+npm run lint        # ESLint + Prettier, zero warnings
+npm run typecheck   # tsc --checkJs on JSDoc types
+npm run bench       # search benchmark with 5,000 icons
+npm run check       # all of the above
 ```
 
-Struktur:
-
 ```
-src/server.js          Start, Signale, sauberes Herunterfahren
-src/app.js             Express-App: Middleware-Reihenfolge, Security-Header
-src/config.js          Umgebungsvariablen lesen und validieren
+src/server.js          start-up, signals, graceful shutdown
+src/app.js             Express app: middleware order, security headers
+src/config.js          read and validate environment variables
 src/routes/            auth, icons, backup, files (/icons/*)
-src/lib/storage.js     metadata.json: Mutex, atomares Schreiben, Migration
-src/lib/svg.js         SVG-Bereinigung (DOMPurify + jsdom, XML-Parser)
-src/lib/filetype.js    Magic-Byte-Prüfung
-src/lib/raster.js      Neu-Kodierung mit sharp
-src/lib/backup.js      ZIP-Export/-Import
-public/                Oberfläche (Vanilla JS, kein Build-Schritt)
+src/lib/storage.js     metadata.json: mutex, atomic writes, migration
+src/lib/svg.js         SVG sanitising (DOMPurify + jsdom, XML parser)
+src/lib/filetype.js    magic-byte checks
+src/lib/raster.js      re-encoding with sharp
+src/lib/backup.js      ZIP export/import
+public/                UI (vanilla JS, no build step)
 ```
 
-## API für Skripte
+### API for scripts
 
-Mit `ALLOW_API_BEARER=true`:
+With `ALLOW_API_BEARER=true`:
 
 ```sh
 curl -H "Authorization: Bearer $ADMIN_KEY" -F file=@proxmox.svg -F name=Proxmox -F tags=virtualization \
   http://zimaos:3011/api/icons
 ```
 
-| Methode        | Pfad                          | Zweck                               |
+| Method         | Path                          | Purpose                             |
 | -------------- | ----------------------------- | ----------------------------------- |
-| `GET`          | `/api/health`                 | Healthcheck (öffentlich)            |
-| `POST`         | `/api/login` / `/api/logout`  | Sitzung (Cookie)                    |
-| `GET`          | `/api/icons?q=`               | Liste/Suche                         |
-| `POST`         | `/api/icons`                  | Upload (`file`, `name`, `tags`)     |
+| `GET`          | `/api/health`                 | health check (public)               |
+| `POST`         | `/api/login` / `/api/logout`  | session (cookie)                    |
+| `GET`          | `/api/icons?q=`               | list / search                       |
+| `POST`         | `/api/icons`                  | upload (`file`, `name`, `tags`)     |
 | `PATCH`        | `/api/icons/:id`              | `{ "name": "...", "tags": "a, b" }` |
-| `DELETE`       | `/api/icons/:id`              | Löschen                             |
-| `GET` / `POST` | `/api/export` / `/api/import` | Backup                              |
-| `GET`          | `/icons/<datei>`              | Icon-Auslieferung (öffentlich)      |
+| `DELETE`       | `/api/icons/:id`              | delete                              |
+| `GET` / `POST` | `/api/export` / `/api/import` | backup                              |
+| `GET`          | `/icons/<file>`               | icon delivery (public)              |
 
----
+Security measures and their evidence (in German): [QUALITY.md](QUALITY.md).
 
-## Sicherheitsmaßnahmen (Kurzfassung)
-
-- **Kein Start ohne gültigen Key**: Fehlender, zu kurzer oder Platzhalter-Key bricht den Start ab.
-- **Login per Formular** statt `?key=`: Session-Cookie `HttpOnly`, `SameSite=Strict`, bei HTTPS `Secure`.
-  Key-Vergleich zeitkonstant (SHA-256 + `timingSafeEqual`), nichts im `localStorage`.
-- **CSRF-Schutz**: `SameSite=Strict`, zusätzlich Prüfung des `Origin`-Headers bei allen schreibenden Anfragen.
-- **Rate Limiting**: Login 5/min pro IP, Uploads 120/10 min pro IP.
-- **SVG-Bereinigung**: XML-Parser, DOMPurify im SVG-Profil, entfernt Scripts, Event-Handler, `foreignObject`
-  und externe Referenzen (`href`, `url()`, `@import`). DOCTYPE/ENTITY werden abgelehnt (XXE, Billion Laughs).
-- **Strikte Header unter `/icons`**: `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline';
-img-src data:; sandbox`, `X-Content-Type-Options: nosniff`, `Cross-Origin-Resource-Policy: cross-origin`.
-- **Dateityp über Magic Bytes**: Endung und Inhalt müssen übereinstimmen. Der Content-Type kommt fest aus
-  einer Allowlist. Rasterbilder werden neu kodiert (Metadaten und angehängte Daten entfernt), mit Pixel-Limit
-  gegen Decompression Bombs.
-- **Oberfläche mit helmet**: strikte CSP ohne Inline-Script, keine externen Schriften (System-Fonts).
-- **Datenintegrität**: atomares Schreiben (temp + fsync + rename), Mutex für alle Änderungen. Bei kaputter
-  `metadata.json` startet die App nicht, statt sie zu überschreiben.
-- **Pfadsicherheit**: Auslieferung und Löschen nur über exakte Dateinamen aus den Metadaten, zusätzlich
-  `path.basename` und eine Allowlist für Dateinamen.
-- **Grenzen**: Upload-Größe, Gesamtspeicher, Name ≤ 100, max. 20 Tags à 32 Zeichen, JSON-Body ≤ 16 KB,
-  max. 4 gleichzeitige Uploads.
-- **Fehlerantworten ohne Stacktrace**, mit stabilen Fehlercodes.
-- **Audit-Log** (JSON auf stdout) für Login, Logout, Upload, Änderung, Löschung, Export, Import. Der Key wird
-  nie geloggt.
-- **Container**: läuft als `node` (UID 1000), `read_only`, `cap_drop: ALL`, `no-new-privileges`, 256 MB/1 CPU,
-  kein npm im Laufzeit-Image, Basis-Image per Digest gepinnt, Healthcheck, sauberes Herunterfahren bei SIGTERM.
-
-Details und Nachweise: [QUALITY.md](QUALITY.md).
-
-## Lizenz
-
-MIT, siehe [LICENSE](LICENSE).
+Inspired by [mr-shadow00/Icon-Store](https://github.com/mr-shadow00/Icon-Store). License: [MIT](LICENSE).

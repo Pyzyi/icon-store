@@ -17,6 +17,9 @@ describe('config', () => {
 
   it('refuses the placeholder from the compose file', () => {
     assert.throws(() => loadConfig({ ADMIN_KEY: 'BITTE_AENDERN_openssl_rand_hex_32_ausfuehren' }), /placeholder/);
+    // The current compose.yaml placeholder (31 chars) and a padded variant are both refused.
+    assert.throws(() => loadConfig({ ADMIN_KEY: 'CHANGE_ME_generate_a_random_key' }), /too short/);
+    assert.throws(() => loadConfig({ ADMIN_KEY: 'CHANGE_ME_generate_a_random_key_padded' }), /placeholder/);
   });
 
   it('allows no key only with ALLOW_INSECURE_NO_AUTH=true', () => {
