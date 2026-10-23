@@ -1,5 +1,6 @@
 # Icon Store für ZimaOS / CasaOS
 # App Store → "Benutzerdefinierte App installieren" → Docker-Compose-Tab → einfügen.
+# Quellcode, Tests und Doku: https://github.com/Pyzyi/icon-store/tree/source
 #
 # EINZIGE PFLICHTÄNDERUNG: ADMIN_KEY unten ersetzen.
 # Key erzeugen im ZimaOS-Terminal (dort gibt es kein openssl):
