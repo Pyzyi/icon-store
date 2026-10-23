@@ -56,6 +56,6 @@ Legende: ✅ erfüllt · ◐ teilweise erfüllt · ✗ nicht erfüllt
    JSON-Serialisierung von 5.000 Einträgen kommt hinzu, wurde aber nicht separat gemessen.
 10. **Mehrere Instanzen auf denselben Daten werden nicht unterstützt** (In-Process-Mutex). Das ist für das
     Zielszenario (ein Container) ausreichend.
-11. **GHCR-Sichtbarkeit**: Falls das erste veröffentlichte Paket auf GitHub als „private“ angelegt wird, muss es
-    einmalig unter _Packages → icon-store → Package settings_ auf „public“ gestellt werden, sonst kann ZimaOS
-    es nicht ohne Login laden.
+11. **GHCR**: Das Paket `ghcr.io/pyzyi/icon-store` ist öffentlich (anonymer Manifest-Abruf → HTTP 200, Blob →
+    HTTP 307 auf das GitHub-CDN) und enthält `linux/amd64` und `linux/arm64`. Der CI-Lauf #1 war komplett grün:
+    Tests, Lint, Typprüfung, Coverage, Benchmark, `npm audit`, Smoke-Test des Images, Multi-Arch-Push.
