@@ -2,7 +2,9 @@
 # App Store → "Benutzerdefinierte App installieren" → Docker-Compose-Tab → einfügen.
 #
 # EINZIGE PFLICHTÄNDERUNG: ADMIN_KEY unten ersetzen.
-# Key erzeugen (ZimaOS-Terminal oder beliebiger Rechner):  openssl rand -hex 32
+# Key erzeugen im ZimaOS-Terminal (dort gibt es kein openssl):
+#   head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n'; echo
+# Auf anderen Rechnern geht auch:  openssl rand -hex 32
 # Solange der Platzhalter drinsteht, startet die App absichtlich nicht.
 name: icon-store
 
@@ -34,7 +36,7 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
     environment:
-      # Pflicht, min. 32 Zeichen. Erzeugen mit: openssl rand -hex 32
+      # Pflicht, min. 32 Zeichen (siehe Befehl ganz oben).
       ADMIN_KEY: 'BITTE_AENDERN_openssl_rand_hex_32'
       # Optional (Standardwerte):
       MAX_UPLOAD_MB: '8'

@@ -19,11 +19,14 @@ Neu und gehärtet aufgebaut auf Basis der Idee von
 
 ### 1. Admin-Key erzeugen
 
-Im ZimaOS-Terminal (oder auf einem beliebigen Rechner):
+Im ZimaOS-Terminal (dort ist `openssl` nicht installiert):
 
 ```sh
-openssl rand -hex 32
+head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n'; echo
 ```
+
+Auf anderen Rechnern geht auch `openssl rand -hex 32`. Falls beides fehlt:
+`docker run --rm alpine sh -c "head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n'"; echo`
 
 Das Ergebnis (64 Zeichen) ist Ihr Passwort für die Oberfläche. Gut aufbewahren, z. B. im Passwortmanager.
 
