@@ -2,7 +2,8 @@ name: CI & Image
 
 on:
   push:
-    branches: [main]
+    # Code lives on "source"; "main" only carries compose.yaml for easy copy & paste.
+    branches: [source]
     tags: ['v*']
   pull_request:
   workflow_dispatch:
@@ -64,8 +65,8 @@ jobs:
         with:
           images: ${{ env.IMAGE }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=2,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/source' }}
+            type=raw,value=2,enable=${{ github.ref == 'refs/heads/source' }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha,format=short

@@ -1,5 +1,7 @@
 # Icon Store
 
+> Dieser Branch (`source`) enthält Code, Tests und CI. Der Branch `main` enthält nur die `compose.yaml` zum Kopieren.
+
 Selbst gehosteter Icon-Speicher für Dashboards wie Homepage, Homarr oder Dashy:
 Icon hochladen, stabile Direkt-URL kopieren, als `<img>` einbinden.
 
@@ -33,7 +35,7 @@ Das Ergebnis (64 Zeichen) ist Ihr Passwort für die Oberfläche. Gut aufbewahren
 ### 2. App installieren
 
 1. ZimaOS → **App Store** → **Benutzerdefinierte App installieren** (oben rechts, „+“) → Reiter **Docker Compose**.
-2. Den Inhalt von [`compose.yaml`](compose.yaml) einfügen.
+2. Den Inhalt von [`compose.yaml`](https://github.com/Pyzyi/icon-store/blob/main/compose.yaml) einfügen.
 3. In der Zeile `ADMIN_KEY: "BITTE_AENDERN_openssl_rand_hex_32"` den Platzhalter durch Ihren Key ersetzen.
 4. Installieren.
 
